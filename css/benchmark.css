@@ -1,0 +1,30 @@
+:root {
+    font-size: 12px;
+}
+button, input, select, textarea {
+    font-size: 1rem;
+}
+main {}
+.benchRow {
+    overflow: auto;
+    display: flex;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.benchRow section {
+    margin-right: 15px;
+}
+.benchRow section > strong {
+    width: max-content;
+    display: flex;
+}
+.benchRow section data,
+.benchRow section time {
+    float: right;
+}
+main aside {
+    width: 5rem;
+}
+time {
+    color: #009fb6;
+}
