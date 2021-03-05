@@ -18,9 +18,13 @@ main {}
     width: max-content;
     display: flex;
 }
-.benchRow section data,
-.benchRow section time {
+.benchRow section div div {
     float: right;
+}
+.benchRow section div div data,
+.benchRow section div div time,
+.benchRow section div div span {
+    margin-left: 4px;
 }
 main aside {
     width: 5rem;
