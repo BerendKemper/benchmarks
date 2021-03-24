@@ -97,6 +97,115 @@ function race() {
 
 
 
+		//*
+		benchmark = new BenchmarkNum(1);
+		await aSecond();
+
+		let test_anonymousCallback = function () {
+			let counter = 0;
+			for (let ix = 0; ix < n; ix++) {
+				(() => counter++)();
+			}
+			console.log(counter); // should be 1000000
+		};
+		let test_createdCallback = function () {
+			let counter = 0;
+			for (let ix = 0; ix < n; ix++) {
+				const callback = () => counter++;
+				callback();
+			}
+			console.log(counter); // should be 1000000
+		};
+		let test_protoCallback = function () {
+			let counter = 0;
+			let proto_callback = () => counter++;
+			for (let ix = 0; ix < n; ix++) {
+				proto_callback();
+			}
+			console.log(counter); // should be 1000000
+		};
+		benchmark.section("prototyped function");
+		await benchmark.measure("test protoCallback", test_protoCallback);
+		await benchmark.measure("test protoCallback", test_protoCallback);
+		await benchmark.measure("test protoCallback", test_protoCallback);
+		await benchmark.measure("test protoCallback", test_protoCallback);
+		await benchmark.measure("test protoCallback", test_protoCallback);
+		benchmark.section("anonymously created function");
+		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
+		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
+		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
+		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
+		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
+		benchmark.section("created function");
+		await benchmark.measure("test createdCallback", test_createdCallback);
+		await benchmark.measure("test createdCallback", test_createdCallback);
+		await benchmark.measure("test createdCallback", test_createdCallback);
+		await benchmark.measure("test createdCallback", test_createdCallback);
+		await benchmark.measure("test createdCallback", test_createdCallback);
+		//*/
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+		class FunctionTester {
+			counter = 0;
+			protoAdd1() {
+				this.counter++;
+			};
+			protoCallback(callback) {
+				callback(() => this.protoAdd1());
+			};
+			definedCallback(callback) {
+				const definedAdd = () => this.counter++;
+				callback(definedAdd);
+			};
+		};
+		const functionTester = new FunctionTester();
+
+		await aSecond();
+
+		let tester_protoCallbacks = function () {
+			functionTester.counter = 0;
+			for (let ix = 0; ix < n; ix++)
+				functionTester.protoAdd1(addOne => addOne());
+			console.log(functionTester.counter); // should be 1000000
+		};
+		let test_definedCallbacks = function () {
+			functionTester.counter = 0;
+			for (let ix = 0; ix < n; ix++)
+				functionTester.definedCallback(addOne => addOne());
+			console.log(functionTester.counter); // should be 1000000
+		};
+		benchmark.section("protoCallbacks");
+		await benchmark.measure("tester_protoCallbacks", tester_protoCallbacks);
+		await benchmark.measure("tester_protoCallbacks", tester_protoCallbacks);
+		await benchmark.measure("tester_protoCallbacks", tester_protoCallbacks);
+		await benchmark.measure("tester_protoCallbacks", tester_protoCallbacks);
+		await benchmark.measure("tester_protoCallbacks", tester_protoCallbacks);
+
+		benchmark.section("definedCallbacks");
+		await benchmark.measure("test_definedCallbacks", test_definedCallbacks);
+		await benchmark.measure("test_definedCallbacks", test_definedCallbacks);
+		await benchmark.measure("test_definedCallbacks", test_definedCallbacks);
+		await benchmark.measure("test_definedCallbacks", test_definedCallbacks);
+		await benchmark.measure("test_definedCallbacks", test_definedCallbacks);
+		//*/
+
+
+
+
+
+
+
+
+
 
 		//*
 		benchmark = new BenchmarkNum(1);
@@ -253,6 +362,485 @@ function race() {
 		await benchmark.measure("object getClassSmall", object_getClassSmall);
 		await benchmark.measure("object modClassSmall", object_modClassSmall);
 		await benchmark.measure("object deleteClassSmall", object_deleteClassSmall);
+		//*/
+
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+		await aSecond();
+
+		benchmark.section("class primitive keys > priv primitive values:");
+		class A {
+			#primVal = 1;
+			#bigObj = objsBig[0];
+			#smallObj = objsSmall[0];
+
+			getPrim() {
+				return this.#primVal;
+			};
+			modPrim(value) {
+				this.#primVal = value;
+			};
+			get prim() {
+				return this.#primVal;
+			};
+			set prim(value) {
+				this.#primVal = value;
+			};
+			definePrim(value) {
+				Object.defineProperty(this, "primVal", {
+					value,
+					writable: true
+				});
+			};
+			getObjBigId() {
+				return this.#bigObj.id;
+			};
+			modObjBigId(value) {
+				this.#bigObj.id = value;
+			};
+			get objBigId() {
+				return this.#bigObj.id;
+			};
+			set objBigId(value) {
+				this.#bigObj.id = value;
+			};
+			getObjSmallId() {
+				return this.#smallObj.id;
+			};
+			modObjSmallId(value) {
+				this.#smallObj.id = value;
+			};
+			get objSmallId() {
+				return this.#smallObj.id;
+			};
+			set objSmallId(value) {
+				this.#smallObj.id = value;
+			};
+		};
+		let a = new A();
+		await benchmark.measure("class Priv getPrim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.getPrim();
+		});
+		await benchmark.measure("class Priv modPrim", () => {
+			for (let i = 0; i < n; i++)
+				a.modPrim(i);
+		});
+		await benchmark.measure("class Priv getter prim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.prim;
+		});
+		await benchmark.measure("class Priv setter prim", () => {
+			for (let i = 0; i < n; i++)
+				a.prim = i;
+		});
+		await benchmark.measure("class define prim", () => {
+			for (let i = 0; i < n; i++)
+				a.definePrim(i);
+		});
+		await benchmark.measure("class get defined prim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.primVal;
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class primitive keys > priv big object values");
+		await benchmark.measure("class Priv getObjBigId", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.getObjBigId();
+		});
+		await benchmark.measure("class Priv modObjBigId", () => {
+			for (let i = 0; i < n; i++)
+				a.modObjBigId(i);
+		});
+		await benchmark.measure("class Priv getter objBigId", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.objBigId;
+		});
+		await benchmark.measure("class Priv setter objBigId", () => {
+			for (let i = 0; i < n; i++)
+				a.objBigId = i;
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class primitive keys > priv small object values");
+		await benchmark.measure("class Priv getObjSmallId", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.getObjSmallId();
+		});
+		await benchmark.measure("class Priv modObjSmallId", () => {
+			for (let i = 0; i < n; i++)
+				a.modObjSmallId(i);
+		});
+		await benchmark.measure("class Priv getter objSmallId", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = a.objSmallId;
+		});
+		await benchmark.measure("class Priv setter objSmallId", () => {
+			for (let i = 0; i < n; i++)
+				a.objSmallId = i;
+		});
+		//*/
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+
+		let objAccessKey_e = {};
+		class E {
+			#primVal = 1;
+			#bigObj = objsBig[0];
+			#smallObj = objsSmall[0];
+			getPrim(key) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				return this.#primVal
+			};
+			modPrim(key, value) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				this.#primVal = value;
+			};
+			getObjBigId(key) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				return this.#bigObj.id;
+			};
+			modObjBigId(key, id) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				this.#bigObj.id = id;
+			};
+			getObjSmallId(key) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				return this.#smallObj.id;
+			};
+			modObjSmallId(key, id) {
+				if (key !== objAccessKey_e)
+					throw new Error("Access denied");
+				this.#smallObj.id = id;
+			};
+		};
+		let e = new E();
+
+		await aSecond();
+
+		benchmark.section("class objKey primitive keys > priv primitive values:");
+		await benchmark.measure("class objKey getPrim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = e.getPrim(objAccessKey_e);
+		});
+		await benchmark.measure("class objKey modPrim", () => {
+			for (let i = 0; i < n; i++)
+				e.modPrim(objAccessKey_e, i);
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class objKey primitive keys > priv big object values:");
+		await benchmark.measure("class objKey getObjBig", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = e.getObjBigId(objAccessKey_e);
+		});
+		await benchmark.measure("class objKey modObjBig", () => {
+			for (let i = 0; i < n; i++)
+				e.modObjBigId(objAccessKey_e, i);
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class objKey primitive keys > priv small object values");
+		await benchmark.measure("class objKey getObjSmall", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = e.getObjSmallId(objAccessKey_e);
+		});
+		await benchmark.measure("class objKey modObjSmall", () => {
+			for (let i = 0; i < n; i++)
+				e.modObjSmallId(objAccessKey_e, i);
+		});
+		//*/
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+
+		let accessKey_d = Symbol("Access Key D");
+		class D {
+			#primVal = 1;
+			#bigObj = objsBig[0];
+			#smallObj = objsSmall[0];
+			getPrim(key) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				return this.#primVal
+			};
+			modPrim(key, value) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				this.#primVal = value;
+			};
+			getObjBigId(key) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				return this.#bigObj.id;
+			};
+			modObjBigId(key, id) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				this.#bigObj.id = id;
+			};
+			getObjSmallId(key) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				return this.#smallObj.id;
+			};
+			modObjSmallId(key, id) {
+				if (key !== accessKey_d)
+					throw new Error("Access denied");
+				this.#smallObj.id = id;
+			};
+		};
+		let d = new D();
+
+		await aSecond();
+
+		benchmark.section("class symKey primitive keys > priv primitive values:");
+		await benchmark.measure("class symKey getPrim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = d.getPrim(accessKey_d);
+		});
+		await benchmark.measure("class symKey modPrim", () => {
+			for (let i = 0; i < n; i++)
+				d.modPrim(accessKey_d, i);
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class symKey primitive keys > priv big object values:");
+		await benchmark.measure("class symKey getObjBig", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = d.getObjBigId(accessKey_d);
+		});
+		await benchmark.measure("class symKey modObjBig", () => {
+			for (let i = 0; i < n; i++)
+				d.modObjBigId(accessKey_d, i);
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class symKey primitive keys > priv small object values");
+		await benchmark.measure("class symKey getObjSmall", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = d.getObjSmallId(accessKey_d);
+		});
+		await benchmark.measure("class symKey modObjSmall", () => {
+			for (let i = 0; i < n; i++)
+				d.modObjSmallId(accessKey_d, i);
+		});
+		//*/
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+		await aSecond();
+
+		let accessKey_b = Symbol("Access Key B");
+		let accessError_b = new Error("Access denied");
+		function B() {
+			let primVal = 1;
+			const bigObj = objsBig[0];
+			const smallObj = objsSmall[0];
+			this.getPrimValue = key => key === accessKey_b ? primVal : accessError_b;
+			this.setPrimValue = (key, value) => {
+				if (key !== accessKey_b)
+					throw accessError_b;
+				primVal = value;
+			};
+			this.getObjBig = key => key === accessKey_b ? bigObj : accessError_b;
+			this.getObjSmall = key => key === accessKey_b ? smallObj : accessError_b;
+		};
+		B.prototype = {
+			getPrim() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = this.getPrimValue(accessKey_b);
+			},
+			modPrim() {
+				for (let i = 0; i < n; i++)
+					value = this.setPrimValue(accessKey_b, i);
+			},
+			getObjBigId() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = this.getObjBig(accessKey_b).id;
+			},
+			modObjBigId() {
+				for (let i = 0; i < n; i++)
+					this.getObjBig(accessKey_b).id++;
+			},
+			getObjSmallId() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = this.getObjSmall(accessKey_b).id;
+			},
+			modObjSmallId() {
+				for (let i = 0; i < n; i++)
+					this.getObjSmall(accessKey_b).id++;
+			}
+		};
+		let b = new B();
+
+		benchmark.section("func symKey primitive keys > primitive values:");
+		await benchmark.measure("func symKey getPrim", () => b.getPrim());
+		await benchmark.measure("func symKey modPrim", () => b.modPrim());
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("func symKey primitive keys > big object values:");
+		await benchmark.measure("func symKey getObjBig", () => b.getObjBigId());
+		await benchmark.measure("func symKey modObjBig", () => b.modObjBigId());
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("func symKey primitive keys > small object values");
+		await benchmark.measure("func symKey getObjSmall", () => {
+			b.getObjSmallId()
+		});
+		await benchmark.measure("func symKey modObjSmall", () => b.modObjSmallId());
+
+		await benchmark.measure("class symKey getObjSmall", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = d.getObjSmallId(accessKey_d);
+		});
+		await benchmark.measure("class symKey modObjSmall", () => {
+			for (let i = 0; i < n; i++)
+				d.modObjSmallId(accessKey_d, i);
+		});
+		//*/
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+		await aSecond();
+
+		const c_prim = new WeakMap();
+		const c_bigObj = new WeakMap();
+		const c_smallObj = new WeakMap();
+		function C() {
+			c_prim.set(this, 1);
+			c_bigObj.set(this, objsBig[0]);
+			c_smallObj.set(this, objsSmall[0]);
+		};
+		C.prototype = {
+			getPrim() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = c_prim.get(this);
+			},
+			modPrim() {
+				for (let i = 0; i < n; i++)
+					value = c_prim.set(this, i);
+			},
+			getObjBigId() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = c_bigObj.get(this).id;
+			},
+			modObjBigId() {
+				for (let i = 0; i < n; i++)
+					c_bigObj.get(this).id++;
+			},
+			getObjSmallId() {
+				let value;
+				for (let i = 0; i < n; i++)
+					value = c_smallObj.get(this).id;
+			},
+			modObjSmallId() {
+				for (let i = 0; i < n; i++)
+					c_smallObj.get(this).id++;
+			}
+		};
+		let c = new C();
+
+		benchmark.section("class map primitive keys > primitive values:");
+		await benchmark.measure("class map getPrim", () => c.getPrim());
+		await benchmark.measure("class map modPrim", () => c.modPrim());
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class map primitive keys > big object values:");
+		await benchmark.measure("class map getObjBig", () => c.getObjBigId());
+		await benchmark.measure("class map modObjBig", () => c.modObjBigId());
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("class map primitive keys > small object values");
+		await benchmark.measure("class map getObjSmall", () => c.getObjSmallId());
+		await benchmark.measure("class map modObjSmall", () => c.modObjSmallId());
 		//*/
 
 
@@ -1341,51 +1929,6 @@ function race() {
 		await benchmark.measure("test1", test_ManyTimesWithObjectCalback);
 		await benchmark.measure("test2", test_ManyTimesWithObjectCalback);
 		await benchmark.measure("test3", test_ManyTimesWithObjectCalback);
-		//*/
-
-
-
-
-
-
-
-
-
-		//*
-		benchmark = new BenchmarkNum(1);
-		await aSecond();
-
-		n6 = 1000000;
-		let test_anonymousCallback = function () {
-			let counter = 0;
-			for (let ix = 0; ix < n6; ix++) {
-				(() => {
-					counter++;
-				})();
-			}
-			console.log(counter); // should be 1000000
-		};
-		let test_protoCallback = function () {
-			let counter = 0;
-			let proto_callback = () => {
-				counter++;
-			};
-			for (let ix = 0; ix < n6; ix++) {
-				proto_callback();
-			}
-			console.log(counter); // should be 1000000
-		};
-		benchmark.section("test anonymously created vs prototype function ");
-		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
-		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
-		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
-		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
-		await benchmark.measure("test anonymousCallback", test_anonymousCallback);
-		await benchmark.measure("test protoCallback", test_protoCallback);
-		await benchmark.measure("test protoCallback", test_protoCallback);
-		await benchmark.measure("test protoCallback", test_protoCallback);
-		await benchmark.measure("test protoCallback", test_protoCallback);
-		await benchmark.measure("test protoCallback", test_protoCallback);
 		//*/
 	}, 250);
 };
