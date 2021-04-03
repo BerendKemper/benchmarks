@@ -398,7 +398,16 @@ function race() {
 			definePrim(value) {
 				Object.defineProperty(this, "primVal", {
 					value,
-					writable: true
+					configurable: true
+				});
+			};
+			defineGetterPrim(value) {
+				Object.defineProperty(this, "primValGetter", {
+					get() {
+						return value;
+					},
+					configurable: true
+					// writable: true
 				});
 			};
 			getObjBigId() {
@@ -445,15 +454,24 @@ function race() {
 			for (let i = 0; i < n; i++)
 				a.prim = i;
 		});
-		await benchmark.measure("class define prim", () => {
-			for (let i = 0; i < n; i++)
-				a.definePrim(i);
-		});
-		await benchmark.measure("class get defined prim", () => {
-			let value;
-			for (let i = 0; i < n; i++)
-				value = a.primVal;
-		});
+		// await benchmark.measure("class define prim", () => {
+		// 	for (let i = 0; i < n; i++)
+		// 		a.definePrim(i);
+		// });
+		// await benchmark.measure("class get defined prim", () => {
+		// 	let value;
+		// 	for (let i = 0; i < n; i++)
+		// 		value = a.primVal;
+		// });
+		// await benchmark.measure("class define getter prim", () => {
+		// 	for (let i = 0; i < n; i++)
+		// 		a.defineGetterPrim(i);
+		// });
+		// await benchmark.measure("class get defined getter prim", () => {
+		// 	let value;
+		// 	for (let i = 0; i < n; i++)
+		// 		value = a.primValGetter;
+		// });
 		console.log("");
 
 		await aSecond();
@@ -770,6 +788,98 @@ function race() {
 		await benchmark.measure("class symKey modObjSmall", () => {
 			for (let i = 0; i < n; i++)
 				d.modObjSmallId(accessKey_d, i);
+		});
+		//*/
+
+
+
+
+
+
+
+
+
+
+		//*
+		benchmark = new BenchmarkNum(1);
+		await aSecond();
+
+		const behindProxy = {
+			primVal: 1,
+			bigObj: objsBig[0],
+			smallObj: objsSmall[0]
+		};
+		const getters = {
+			get primVal() {
+				return behindProxy.primVal
+			},
+			get bigObjId() {
+				return behindProxy.bigObj.id;
+			},
+			get smallObjId() {
+				return behindProxy.smallObj.id;
+			},
+		};
+		const proxyHandler = {
+			get(target, prop, receiver) {
+				return getters[prop];
+			},
+			set() { }
+		};
+		const aProxy = new Proxy(behindProxy, proxyHandler)
+
+		benchmark.section("proxy primitive keys > priv primitive values:");
+		await benchmark.measure("proxy getPrim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = aProxy.primVal;
+		});
+		await benchmark.measure("no proxy getPrim", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = getters.primVal;
+		});
+		await benchmark.measure("proxy modPrim", () => {
+			for (let i = 0; i < n; i++)
+				behindProxy.primVal = i;
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("proxy primitive keys > priv big object values:");
+		await benchmark.measure("proxy getObjBig", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = aProxy.bigObjId;
+		});
+		await benchmark.measure("no proxy getObjBig", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = getters.bigObjId;
+		});
+		await benchmark.measure("proxy modObjBig", () => {
+			for (let i = 0; i < n; i++)
+				behindProxy.bigObj.id = i;
+		});
+		console.log("");
+
+		await aSecond();
+
+		benchmark.section("proxy primitive keys > priv small object values");
+		await benchmark.measure("proxy getObjSmall", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = aProxy.smallObjId;
+		});
+		await benchmark.measure("no proxy getObjSmall", () => {
+			let value;
+			for (let i = 0; i < n; i++)
+				value = getters.smallObjId;
+		});
+		await benchmark.measure("proxy modObjSmall", () => {
+			for (let i = 0; i < n; i++)
+				behindProxy.smallObj.id = i;
 		});
 		//*/
 
