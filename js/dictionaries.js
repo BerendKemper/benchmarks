@@ -395,7 +395,6 @@ function race() {
         benchmark = new BenchmarkNum(1);
         await aSecond();
 
-        benchmark.section("class primitive keys > priv primitive values:");
         class A {
             #primVal = 1;
             #bigObj = objsBig[0];
@@ -412,21 +411,6 @@ function race() {
             };
             set prim(value) {
                 this.#primVal = value;
-            };
-            definePrim(value) {
-                Object.defineProperty(this, "primVal", {
-                    value,
-                    configurable: true
-                });
-            };
-            defineGetterPrim(value) {
-                Object.defineProperty(this, "primValGetter", {
-                    get() {
-                        return value;
-                    },
-                    configurable: true
-                    // writable: true
-                });
             };
             getObjBigId() {
                 return this.#bigObj.id;
@@ -454,6 +438,8 @@ function race() {
             };
         };
         let a = new A();
+
+        benchmark.section("class primitive keys > priv primitive values:");
         await benchmark.measure("class Priv getPrim", () => {
             let value;
             for (let i = 0; i < n; i++)
@@ -472,24 +458,6 @@ function race() {
             for (let i = 0; i < n; i++)
                 a.prim = i;
         });
-        // await benchmark.measure("class define prim", () => {
-        // 	for (let i = 0; i < n; i++)
-        // 		a.definePrim(i);
-        // });
-        // await benchmark.measure("class get defined prim", () => {
-        // 	let value;
-        // 	for (let i = 0; i < n; i++)
-        // 		value = a.primVal;
-        // });
-        // await benchmark.measure("class define getter prim", () => {
-        // 	for (let i = 0; i < n; i++)
-        // 		a.defineGetterPrim(i);
-        // });
-        // await benchmark.measure("class get defined getter prim", () => {
-        // 	let value;
-        // 	for (let i = 0; i < n; i++)
-        // 		value = a.primValGetter;
-        // });
         console.log("");
 
         await aSecond();
@@ -537,6 +505,127 @@ function race() {
                 a.objSmallId = i;
         });
         //*/
+
+
+
+
+
+
+        //*
+        benchmark = new BenchmarkNum(1);
+        await aSecond();
+
+        benchmark.section("factory primitive keys > priv primitive values:");
+        function factA() {
+            let primVal = 1;
+            const bigObj = objsBig[0];
+            const smallObj = objsSmall[0];
+            return {
+                getPrim() {
+                    return primVal;
+                },
+                modPrim(value) {
+                    primVal = value;
+                },
+                get prim() {
+                    return primVal;
+                },
+                set prim(value) {
+                    primVal = value;
+                },
+                getObjBigId() {
+                    return bigObj.id;
+                },
+                modObjBigId(value) {
+                    bigObj.id = value;
+                },
+                get objBigId() {
+                    return bigObj.id;
+                },
+                set objBigId(value) {
+                    bigObj.id = value;
+                },
+                getObjSmallId() {
+                    return smallObj.id;
+                },
+                modObjSmallId(value) {
+                    smallObj.id = value;
+                },
+                get objSmallId() {
+                    return smallObj.id;
+                },
+                set objSmallId(value) {
+                    smallObj.id = value;
+                },
+            }
+        }
+        let aFact = factA();
+        await benchmark.measure("factory Priv getPrim", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.getPrim();
+        });
+        await benchmark.measure("factory Priv modPrim", () => {
+            for (let i = 0; i < n; i++)
+                aFact.modPrim(i);
+        });
+        await benchmark.measure("factory Priv getter prim", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.prim;
+        });
+        await benchmark.measure("factory Priv setter prim", () => {
+            for (let i = 0; i < n; i++)
+                aFact.prim = i;
+        });
+        console.log("");
+
+        await aSecond();
+
+        benchmark.section("factory primitive keys > priv big object values");
+        await benchmark.measure("factory Priv getObjBigId", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.getObjBigId();
+        });
+        await benchmark.measure("factory Priv modObjBigId", () => {
+            for (let i = 0; i < n; i++)
+                aFact.modObjBigId(i);
+        });
+        await benchmark.measure("factory Priv getter objBigId", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.objBigId;
+        });
+        await benchmark.measure("factory Priv setter objBigId", () => {
+            for (let i = 0; i < n; i++)
+                aFact.objBigId = i;
+        });
+        console.log("");
+
+        await aSecond();
+
+        benchmark.section("factory primitive keys > priv small object values");
+        await benchmark.measure("factory Priv getObjSmallId", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.getObjSmallId();
+        });
+        await benchmark.measure("factory Priv modObjSmallId", () => {
+            for (let i = 0; i < n; i++)
+                aFact.modObjSmallId(i);
+        });
+        await benchmark.measure("factory Priv getter objSmallId", () => {
+            let value;
+            for (let i = 0; i < n; i++)
+                value = aFact.objSmallId;
+        });
+        await benchmark.measure("factory Priv setter objSmallId", () => {
+            for (let i = 0; i < n; i++)
+                aFact.objSmallId = i;
+        });
+        //*/
+
 
 
 
